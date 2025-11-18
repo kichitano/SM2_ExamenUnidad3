@@ -9,9 +9,11 @@
 Carpetas WorkFlow y Tests
 
 <img width="413" height="189" alt="image" src="https://github.com/user-attachments/assets/f140c5e9-fb42-4a99-9a74-122bc738c2a2" />
+
 Aqui encontramos la estructura original del repo.
 
 <img width="531" height="98" alt="image" src="https://github.com/user-attachments/assets/cabd77e2-3697-48a8-80e2-c111b0ec3aa6" />
+
 Ubicacion del fichero quality-check.yml
 
 <img width="873" height="445" alt="image" src="https://github.com/user-attachments/assets/27156fb4-b37d-4a8e-9c0d-c9cc0a7f1e52" />
