@@ -382,6 +382,22 @@
     }
   },
   "voiceRecordingComingSoon": "Voice Recording - Coming Soon",
+  "holdToRecord": "Hold to record",
+  "releaseToSend": "Release to send",
+  "recording": "Recording...",
+  "getResults": "Get Results",
+  "sendingAudio": "Sending audio...",
+  "recordedSeconds": "Recorded: {seconds}s",
+  "@recordedSeconds": {
+    "placeholders": {
+      "seconds": {
+        "type": "int",
+        "example": "15"
+      }
+    }
+  },
+  "nextQuestion": "Next Question",
+  "reRecord": "Record Again",
   "yourAnswer": "Your Answer",
   "typeYourAnswerHere": "Type your answer here...",
   "minimumCharacters": "Minimum {count} characters",

@@ -334,6 +334,22 @@
     }
   },
   "voiceRecordingComingSoon": "Grabación de Voz - Próximamente",
+  "holdToRecord": "Mantén presionado para grabar",
+  "releaseToSend": "Suelta para enviar",
+  "recording": "Grabando...",
+  "getResults": "Obtener Resultados",
+  "sendingAudio": "Enviando audio...",
+  "recordedSeconds": "Grabado: {seconds}s",
+  "@recordedSeconds": {
+    "placeholders": {
+      "seconds": {
+        "type": "int",
+        "example": "15"
+      }
+    }
+  },
+  "nextQuestion": "Siguiente Pregunta",
+  "reRecord": "Grabar de Nuevo",
   "yourAnswer": "Tu Respuesta",
   "typeYourAnswerHere": "Escribe tu respuesta aquí...",
   "minimumCharacters": "Mínimo {count} caracteres",

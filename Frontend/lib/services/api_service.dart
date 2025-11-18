@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
@@ -22,12 +23,12 @@ class ApiService {
         final data = jsonDecode(response.body);
         return data['response'] ?? 'No response from server';
       } else {
-        print('Error: ${response.statusCode}');
-        print('Response: ${response.body}');
+        debugPrint('Error: ${response.statusCode}');
+        debugPrint('Response: ${response.body}');
         return 'Error processing message. Please try again.';
       }
     } catch (e) {
-      print('Exception: $e');
+      debugPrint('Exception: $e');
       return 'Network error. Please check your connection.';
     }
   }

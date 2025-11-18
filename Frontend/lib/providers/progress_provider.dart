@@ -106,7 +106,7 @@ class ProgressProvider with ChangeNotifier {
           _removePendingSave(progressData);
           
           if (kDebugMode) {
-            print('✅ Progress saved successfully (TEST MODE) for chapter: ${progressData['chapter_id']}');
+            debugPrint('✅ Progress saved successfully (TEST MODE) for chapter: ${progressData['chapter_id']}');
           }
         }
       } else {
@@ -124,7 +124,7 @@ class ProgressProvider with ChangeNotifier {
           await _storeProgressLocally(progressData);
           
           if (kDebugMode) {
-            print('✅ Progress saved successfully for chapter: ${progressData['chapter_id']}');
+            debugPrint('✅ Progress saved successfully for chapter: ${progressData['chapter_id']}');
           }
         } else {
           throw Exception(response.message);
@@ -133,7 +133,7 @@ class ProgressProvider with ChangeNotifier {
       
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error saving progress (attempt ${attemptCount + 1}): $e');
+        debugPrint('❌ Error saving progress (attempt ${attemptCount + 1}): $e');
       }
       
       // Retry logic
@@ -179,11 +179,11 @@ class ProgressProvider with ChangeNotifier {
         );
         
         if (kDebugMode) {
-          print('✅ Approval evaluation completed for chapter: $chapterId');
+          debugPrint('✅ Approval evaluation completed for chapter: $chapterId');
         }
       } catch (e) {
         if (kDebugMode) {
-          print('⚠️ Failed to evaluate approval for chapter $chapterId: $e');
+          debugPrint('⚠️ Failed to evaluate approval for chapter $chapterId: $e');
         }
       }
     }
@@ -280,7 +280,7 @@ class ProgressProvider with ChangeNotifier {
       return null;
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error fetching user progress: $e');
+        debugPrint('❌ Error fetching user progress: $e');
       }
       return null;
     }

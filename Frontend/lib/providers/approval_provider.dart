@@ -135,7 +135,7 @@ class ApprovalProvider with ChangeNotifier {
     } catch (e) {
       _setApprovalState(ApprovalState.error, e.toString());
       if (kDebugMode) {
-        print('❌ Error evaluating approval: $e');
+        debugPrint('❌ Error evaluating approval: $e');
       }
     }
     
@@ -167,7 +167,7 @@ class ApprovalProvider with ChangeNotifier {
       
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error loading chapter approval rules: $e');
+        debugPrint('❌ Error loading chapter approval rules: $e');
       }
       return [];
     }
@@ -202,7 +202,7 @@ class ApprovalProvider with ChangeNotifier {
       
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error loading user chapter evaluation: $e');
+        debugPrint('❌ Error loading user chapter evaluation: $e');
       }
       _chapterEvaluationsCache[chapterId] = null;
       return null;
@@ -236,7 +236,7 @@ class ApprovalProvider with ChangeNotifier {
       
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Error loading user chapter metrics: $e');
+        debugPrint('❌ Error loading user chapter metrics: $e');
       }
       return [];
     }
@@ -302,7 +302,7 @@ class ApprovalProvider with ChangeNotifier {
       _userEvaluations = _approvalService.parseApprovalEvaluations(response.data);
     } else {
       if (kDebugMode) {
-        print('⚠️ Could not load user evaluations: ${response.message}');
+        debugPrint('⚠️ Could not load user evaluations: ${response.message}');
       }
     }
   }
@@ -317,7 +317,7 @@ class ApprovalProvider with ChangeNotifier {
       _userMetricsSummary = _approvalService.parseUserMetricsSummary(response.data);
     } else {
       if (kDebugMode) {
-        print('⚠️ Could not load user metrics summary: ${response.message}');
+        debugPrint('⚠️ Could not load user metrics summary: ${response.message}');
       }
     }
   }
@@ -363,7 +363,7 @@ class ApprovalProvider with ChangeNotifier {
       
     } catch (e) {
       if (kDebugMode) {
-        print('⚠️ Could not create evaluation metrics: $e');
+        debugPrint('⚠️ Could not create evaluation metrics: $e');
       }
     }
   }

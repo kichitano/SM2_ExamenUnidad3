@@ -2,6 +2,9 @@
     <!-- Permissions for model_viewer_plus -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Permission for microphone (interview voice recording) -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
     <application
         android:label="EnglishApp"
         android:name="${applicationName}"

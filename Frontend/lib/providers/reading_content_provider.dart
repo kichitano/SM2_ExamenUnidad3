@@ -371,7 +371,7 @@ class ReadingContentProvider with ChangeNotifier {
       while (retryCount <= maxRetries) {
         try {
           final response = await http.post(
-            Uri.parse('${EnvironmentConfig.fullApiUrl}/reading/chapters/${_content!.readingChapterId}/quiz/submit'),
+            Uri.parse('${EnvironmentConfig.fullApiUrl}/reading/chapters/${_content!.readingChapterId}/complete'),
             headers: {
               'Authorization': 'Bearer ${_authProvider.token}',
               'Origin': EnvironmentConfig.apiBaseUrl,
@@ -379,10 +379,7 @@ class ReadingContentProvider with ChangeNotifier {
               'Content-Type': 'application/json',
             },
             body: json.encode({
-              'answers': _userAnswers,
               'score': _score,
-              'totalQuestions': totalQuestions,
-              'wrongAnswersCount': _wrongAnswersCount
             }),
           ).timeout(const Duration(seconds: 10));
 
@@ -390,13 +387,17 @@ class ReadingContentProvider with ChangeNotifier {
             final result = json.decode(response.body);
             final data = result['data'];
 
-            _score = data['score'] as int;
-            final passed = data['passed'] as bool;
-            
+            _score = (data['score'] as num).toInt();
+            final chapterCompleted = data['chapterCompleted'] as bool;
+            final nextChapterUnlocked = data['nextChapterUnlocked'] as bool? ?? false;
+            final nextChapterId = data['nextChapterId'] as String?;
+
             return {
               'success': true,
               'score': _score,
-              'passed': passed,
+              'chapterCompleted': chapterCompleted,
+              'nextChapterUnlocked': nextChapterUnlocked,
+              'nextChapterId': nextChapterId,
               'totalQuestions': totalQuestions,
             };
           } else if (response.statusCode == 401) {

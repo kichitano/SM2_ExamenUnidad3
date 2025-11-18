@@ -1418,6 +1418,48 @@ abstract class AppLocalizations {
   /// **'Voice Recording - Coming Soon'**
   String get voiceRecordingComingSoon;
 
+  /// No description provided for @holdToRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold to record'**
+  String get holdToRecord;
+
+  /// No description provided for @releaseToSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Release to send'**
+  String get releaseToSend;
+
+  /// No description provided for @recording.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording...'**
+  String get recording;
+
+  /// No description provided for @getResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Results'**
+  String get getResults;
+
+  /// No description provided for @sendingAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending audio...'**
+  String get sendingAudio;
+
+  /// No description provided for @recordedSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded: {seconds}s'**
+  String recordedSeconds(int seconds);
+
+  /// No description provided for @reRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Record Again'**
+  String get reRecord;
+
   /// No description provided for @yourAnswer.
   ///
   /// In en, this message translates to:

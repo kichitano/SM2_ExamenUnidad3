@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../models/chapter_evaluation.dart';
@@ -68,10 +68,10 @@ class EvaluationDetailsScreen extends StatelessWidget {
                             vertical: 8,
                           ),
                           decoration: BoxDecoration(
-                            color: evaluation.statusColor.withOpacity(0.1),
+                            color: evaluation.statusColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: evaluation.statusColor.withOpacity(0.3),
+                              color: evaluation.statusColor.withValues(alpha: 0.3),
                             ),
                           ),
                           child: Text(
@@ -95,7 +95,7 @@ class EvaluationDetailsScreen extends StatelessWidget {
                             height: 120,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: evaluation.statusColor.withOpacity(0.1),
+                              color: evaluation.statusColor.withValues(alpha: 0.1),
                               border: Border.all(
                                 color: evaluation.statusColor,
                                 width: 4,
@@ -231,7 +231,7 @@ class EvaluationDetailsScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color:
-                              theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                              theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -329,9 +329,9 @@ class _SkillCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -392,3 +392,4 @@ class _SkillCard extends StatelessWidget {
     return const Color(0xFFF44336); // Red
   }
 }
+

@@ -104,9 +104,9 @@ class QuizProvider with ChangeNotifier {
       // Store last completed quiz timestamp
       await prefs.setString('last_completed_quiz', DateTime.now().toIso8601String());
       
-      print('✅ Quiz score persisted locally: $score for chapter $chapterId');
+      debugPrint('✅ Quiz score persisted locally: $score for chapter $chapterId');
     } catch (e) {
-      print('❌ Error persisting quiz score: $e');
+      debugPrint('❌ Error persisting quiz score: $e');
     }
   }
 
@@ -162,7 +162,7 @@ class QuizProvider with ChangeNotifier {
         _score = _currentSession!.score.toInt();
       }
     } catch (e) {
-      print('Error creating quiz session: $e');
+      debugPrint('Error creating quiz session: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -191,7 +191,7 @@ class QuizProvider with ChangeNotifier {
       
       notifyListeners();
     } catch (e) {
-      print('Error submitting answer: $e');
+      debugPrint('Error submitting answer: $e');
     }
   }
   
@@ -216,7 +216,7 @@ class QuizProvider with ChangeNotifier {
       
       notifyListeners();
     } catch (e) {
-      print('Error completing quiz: $e');
+      debugPrint('Error completing quiz: $e');
     }
   }
   
@@ -237,7 +237,7 @@ class QuizProvider with ChangeNotifier {
         difficultyLevel: difficultyLevel,
       );
     } catch (e) {
-      print('Error getting quiz stats: $e');
+      debugPrint('Error getting quiz stats: $e');
       return null;
     }
   }

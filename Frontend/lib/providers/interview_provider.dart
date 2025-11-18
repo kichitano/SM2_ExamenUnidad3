@@ -67,6 +67,7 @@ class InterviewProvider with ChangeNotifier {
 
   int get questionsAnswered => _evaluations.length;
   int get totalQuestions => _activeSession?.totalQuestions ?? 0;
+  bool get isLastQuestion => _currentQuestionIndex >= totalQuestions - 1;
   double get progressPercentage {
     if (totalQuestions == 0) return 0;
     return (questionsAnswered / totalQuestions) * 100;
@@ -169,6 +170,65 @@ class InterviewProvider with ChangeNotifier {
     }
   }
 
+  /// Submit an answer with audio for the current question
+  Future<void> submitAnswerWithAudio(List<int> audioBytes, String mimeType) async {
+    if (_activeSession == null || currentQuestion == null) {
+      _errorMessage = 'No active session or question';
+      _state = InterviewState.error;
+      notifyListeners();
+      return;
+    }
+
+    _state = InterviewState.submittingAnswer;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      // Calculate time spent
+      int? timeSpent;
+      if (_questionStartTime != null) {
+        timeSpent = DateTime.now().difference(_questionStartTime!).inSeconds;
+      }
+
+      final response = await _interviewService.submitAnswerWithAudio(
+        sessionId: _activeSession!.sessionId,
+        questionId: currentQuestion!.id,
+        audioBytes: audioBytes,
+        mimeType: mimeType,
+        timeSpentSeconds: timeSpent,
+      );
+
+      // Store evaluation
+      _latestEvaluation = response.evaluation;
+      _evaluations.add(response.evaluation);
+      _currentQuestionIndex = response.currentQuestionIndex;
+
+      // Save progress automatically (if ProgressProvider is available)
+      if (_progressProvider != null && _activeSession != null) {
+        await _progressProvider.onInterviewAnswer(
+          _activeSession!.topicId, // Use topicId as chapterId
+          _currentQuestionIndex,
+          'Audio answer', // Store placeholder text for audio answers
+        );
+      }
+
+      if (response.isCompleted) {
+        _state = InterviewState.sessionCompleted;
+        // Load final score
+        await _loadFinalScore(_activeSession!.sessionId);
+      } else {
+        _state = InterviewState.sessionActive;
+        _questionStartTime = DateTime.now(); // Reset timer for next question
+      }
+
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString();
+      _state = InterviewState.error;
+      notifyListeners();
+    }
+  }
+
   /// Load final session score
   Future<void> _loadFinalScore(String sessionId) async {
     try {
@@ -178,7 +238,7 @@ class InterviewProvider with ChangeNotifier {
       // Don't change state, just log error
       _errorMessage = 'Failed to load final score: $e';
       if (kDebugMode) {
-        print('Error loading final score: $e');
+        debugPrint('Error loading final score: $e');
       }
     }
   }
@@ -293,6 +353,46 @@ class InterviewProvider with ChangeNotifier {
       _questionStartTime = DateTime.now();
       _state = InterviewState.sessionActive;
       notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString();
+      _state = InterviewState.error;
+      notifyListeners();
+    }
+  }
+
+  /// Check if there's an active session for a topic (without changing state)
+  Future<InterviewSession?> checkActiveSession(String topicId) async {
+    try {
+      return await _interviewService.getActiveSession(topicId);
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Error checking active session: $e');
+      }
+      return null;
+    }
+  }
+
+  /// Abandon active session and start a new one
+  Future<void> abandonAndRestart(String topicId) async {
+    try {
+      // First check if there's an active session
+      final activeSession = await _interviewService.getActiveSession(topicId);
+
+      if (activeSession != null) {
+        // Abandon the active session
+        await _interviewService.abandonSession(activeSession.sessionId);
+
+        // Reset local state
+        _activeSession = null;
+        _currentQuestionIndex = 0;
+        _evaluations = [];
+        _latestEvaluation = null;
+        _finalScore = null;
+        _questionStartTime = null;
+      }
+
+      // Now start a new session
+      await startSession(topicId);
     } catch (e) {
       _errorMessage = e.toString();
       _state = InterviewState.error;

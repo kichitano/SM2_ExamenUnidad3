@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/interview_provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/lives_provider.dart';
 import '../models/interview_topic.dart';
+import '../models/interview_session.dart';
 import '../widgets/app_banner.dart';
 import '../l10n/app_localizations.dart';
 import 'interview_session_screen.dart';
@@ -243,9 +244,9 @@ class _TopicCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         text,
@@ -264,15 +265,15 @@ class _TopicCard extends StatelessWidget {
       return color.shade700;
     }
     // For non-MaterialColor, return a darker version
-    return Color.fromRGBO(
-      (color.red * 0.7).round(),
-      (color.green * 0.7).round(),
-      (color.blue * 0.7).round(),
-      1.0,
-    );
+      return Color.fromRGBO(
+        (color.r * 255 * 0.7).round(),
+        (color.g * 255 * 0.7).round(),
+        (color.b * 255 * 0.7).round(),
+        color.a,
+      );
   }
 
-  void _startInterview(BuildContext context) {
+  Future<void> _startInterview(BuildContext context) async {
     final provider = context.read<InterviewProvider>();
     final livesProvider = context.read<LivesProvider>();
     final l10n = AppLocalizations.of(context)!;
@@ -283,6 +284,18 @@ class _TopicCard extends StatelessWidget {
       return;
     }
 
+    // FIRST: Check if there's an active session BEFORE showing any dialog
+    final activeSession = await provider.checkActiveSession(topic.id);
+
+    if (activeSession != null) {
+      // Active session found - show active session dialog directly
+      if (!context.mounted) return;
+      _showActiveSessionDialog(context, provider, activeSession);
+      return;
+    }
+
+    // No active session - show confirmation dialog to start new session
+    if (!context.mounted) return;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -305,6 +318,7 @@ class _TopicCard extends StatelessWidget {
             onPressed: () {
               Navigator.pop(ctx);
               provider.startSession(topic.id).then((_) {
+                if (!context.mounted) return;
                 if (provider.hasActiveSession) {
                   Navigator.push(
                     context,
@@ -313,18 +327,13 @@ class _TopicCard extends StatelessWidget {
                     ),
                   );
                 } else if (provider.state == InterviewState.error) {
-                  // Check if error is about active session
-                  if (provider.errorMessage?.contains('already have an active') ?? false) {
-                    _showActiveSessionDialog(context, provider);
-                  } else {
-                    // Show generic error
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(provider.errorMessage ?? 'Unknown error'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
+                  // Show error
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(provider.errorMessage ?? 'Unknown error'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
                 }
               });
             },
@@ -335,7 +344,11 @@ class _TopicCard extends StatelessWidget {
     );
   }
 
-  void _showActiveSessionDialog(BuildContext context, InterviewProvider provider) {
+  void _showActiveSessionDialog(
+    BuildContext context,
+    InterviewProvider provider,
+    InterviewSession activeSession,
+  ) {
     final l10n = AppLocalizations.of(context)!;
 
     showDialog(
@@ -357,6 +370,11 @@ class _TopicCard extends StatelessWidget {
               'You already have an active interview session for "${topic.name}".',
               style: const TextStyle(fontSize: 16),
             ),
+            const SizedBox(height: 12),
+            Text(
+              'Progress: ${activeSession.currentQuestionIndex}/${activeSession.totalQuestions} questions',
+              style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
+            ),
             const SizedBox(height: 16),
             const Text(
               'Would you like to:',
@@ -373,27 +391,47 @@ class _TopicCard extends StatelessWidget {
             child: Text(l10n.cancel),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              provider.abandonSession().then((_) {
-                if (provider.state == InterviewState.idle) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Session abandoned. You can start a new one.'),
-                      backgroundColor: Colors.green,
+
+              // Show loading indicator
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (loadingCtx) => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+
+              // Abandon current session and start new one
+              await provider.abandonAndRestart(topic.id);
+
+              // Close loading indicator
+              if (context.mounted) {
+                Navigator.pop(context);
+              }
+
+              if (provider.hasActiveSession) {
+                // Successfully started new session - navigate
+                if (context.mounted) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const InterviewSessionScreen(),
                     ),
                   );
-                  // Automatically restart
-                  _startInterview(context);
-                } else {
+                }
+              } else if (provider.state == InterviewState.error) {
+                // Show error
+                if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Failed to abandon: ${provider.errorMessage}'),
+                      content: Text('Failed to restart: ${provider.errorMessage}'),
                       backgroundColor: Colors.red,
                     ),
                   );
                 }
-              });
+              }
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Abandon & Restart'),
@@ -402,6 +440,7 @@ class _TopicCard extends StatelessWidget {
             onPressed: () {
               Navigator.pop(ctx);
               provider.resumeSession(topic.id).then((_) {
+                if (!context.mounted) return;
                 if (provider.hasActiveSession) {
                   Navigator.push(
                     context,
@@ -467,3 +506,4 @@ class _TopicCard extends StatelessWidget {
     );
   }
 }
+

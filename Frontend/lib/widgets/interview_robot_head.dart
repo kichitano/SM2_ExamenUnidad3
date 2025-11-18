@@ -1,23 +1,90 @@
-import 'package:flutter/material.dart';
-import 'package:model_viewer_plus/model_viewer_plus.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:flutter_3d_controller/flutter_3d_controller.dart';
+import 'dart:math';
+import 'dart:async';
 
-/// 3D animated robot head widget for interview screens
+/// 3D animated donkey widget for interview screens
 ///
-/// Displays the Head Chef Bot with 3 animation states:
-/// - Static Pose (neutral)
-/// - SK_HeadChefBot|AS_FP_EC_HeadChefBot_Intro_SK_HeadChefBot (talking/intro)
-/// - SK_HeadChefBot|AS_FP_EC_HeadChefBot_Intro_SK_HeadChefBot (idle - Animation 2)
-class InterviewRobotHead extends StatefulWidget {
-  /// Whether to auto-play the speaking animation on load
-  final bool autoPlaySpeaking;
+/// Animation flow:
+/// 1. WakeUp (7.6s) - Only on first question
+/// 2. Speaking (random, loops until TTS ends)
+/// 3. Idle (random loop while waiting for answer)
+/// 4. Result: Happy (good score) / Sad (bad score)
 
-  /// Duration to play the speaking animation before transitioning to idle
-  final Duration speakingDuration;
+// Animation constants with durations
+class DonkeyAnimations {
+  // Intro animation
+  static const String wakeUp = 'm_Donkey_wakeUp';
+  static const Duration wakeUpDuration = Duration(milliseconds: 7600);
+
+  // Idle animations (mantener tranquilo)
+  static const List<String> idle = [
+    'm_Donkey_breathe8',
+    'm_Donkey_stopWatch_StrechLoop',
+    'm_Donkey_wthr_wind',
+    'm_Donkey_idle5',
+    'm_Donkey_idle6',
+    'm_Donkey_breathe1',
+  ];
+  static const List<Duration> idleDurations = [
+    Duration(milliseconds: 2530),
+    Duration(milliseconds: 1530),
+    Duration(milliseconds: 5800),
+    Duration(milliseconds: 10030),
+    Duration(milliseconds: 4900),
+    Duration(milliseconds: 6030),
+  ];
+
+  // Speaking animations
+  static const List<String> speaking = [
+    'm_Donkey_gift_flute',
+    'm_Donkey_StopPoking2',
+    'm_Donkey_int_footTap2',
+  ];
+  static const List<Duration> speakingDurations = [
+    Duration(milliseconds: 4660),
+    Duration(milliseconds: 5360),
+    Duration(milliseconds: 6230),
+  ];
+
+  // Result animations
+  static const String sad = 'm_Donkey_food_hungry_loop';
+  static const Duration sadDuration = Duration(milliseconds: 1330);
+
+  static const String happy = 'm_Donkey_wakeAlarm5';
+  static const Duration happyDuration = Duration(milliseconds: 3030);
+
+  // Random selection helpers
+  static String getRandomIdle() {
+    return idle[Random().nextInt(idle.length)];
+  }
+
+  static Duration getIdleDuration(String animation) {
+    final index = idle.indexOf(animation);
+    return index >= 0 ? idleDurations[index] : Duration(seconds: 3);
+  }
+
+  static String getRandomSpeaking() {
+    return speaking[Random().nextInt(speaking.length)];
+  }
+
+  static Duration getSpeakingDuration(String animation) {
+    final index = speaking.indexOf(animation);
+    return index >= 0 ? speakingDurations[index] : Duration(seconds: 5);
+  }
+}
+
+class InterviewRobotHead extends StatefulWidget {
+  /// Callback when the 3D model is loaded and ready
+  final VoidCallback? onModelLoaded;
+
+  /// Callback when wakeUp animation completes
+  final VoidCallback? onWakeUpComplete;
 
   const InterviewRobotHead({
     super.key,
-    this.autoPlaySpeaking = true,
-    this.speakingDuration = const Duration(seconds: 5),
+    this.onModelLoaded,
+    this.onWakeUpComplete,
   });
 
   @override
@@ -25,65 +92,204 @@ class InterviewRobotHead extends StatefulWidget {
 }
 
 class InterviewRobotHeadState extends State<InterviewRobotHead> {
-  String _currentAnimation = 'Static Pose';
-  bool _isInitialized = false;
+  late Flutter3DController _controller;
+
+  static bool _hasPlayedWakeUp = false; // Track if wakeUp has been played
+
+  Timer? _animationTimer;
+  bool _isSpeaking = false;
+  bool _isIdling = false;
+  bool _isModelLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    if (widget.autoPlaySpeaking) {
-      _initializeSpeakingSequence();
+
+    // Initialize the 3D controller
+    _controller = Flutter3DController();
+
+    // Listen to model loaded event
+    _controller.onModelLoaded.addListener(_onModelLoadedListener);
+  }
+
+  void _onModelLoadedListener() {
+    if (_controller.onModelLoaded.value && !_isModelLoaded) {
+      _isModelLoaded = true;
+
+      // Wait for model to fully render before setting camera
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (!mounted) return;
+
+        // Set initial camera position
+        // Target: center of model
+        _controller.setCameraTarget(0, 0, 0);
+
+        // Camera orbit: theta=193°, phi=90°, radius=6.80
+        _controller.setCameraOrbit(193, 90, 6.80);
+      });
+
+      // Notify parent that model is ready
+      widget.onModelLoaded?.call();
+
+      // Start wakeUp animation after model loads (only on first question)
+      if (!_hasPlayedWakeUp) {
+        _playWakeUpAnimation();
+      }
     }
   }
 
-  /// Initialize the speaking animation sequence
-  void _initializeSpeakingSequence() {
-    // Start with speaking animation after a brief delay
-    Future.delayed(const Duration(milliseconds: 500), () {
+  @override
+  void dispose() {
+    _animationTimer?.cancel();
+    _controller.onModelLoaded.removeListener(_onModelLoadedListener);
+    super.dispose();
+  }
+
+  /// Play wakeUp animation (only once at start of interview)
+  void _playWakeUpAnimation() {
+    if (!mounted) return;
+
+    debugPrint('🎬 Playing wakeUp animation (7.6s)...');
+
+    // Play animation without looping (loopCount: 1)
+    _controller.playAnimation(
+      animationName: DonkeyAnimations.wakeUp,
+      loopCount: 1,
+    );
+
+    // After wakeUp completes, notify parent
+    Future.delayed(DonkeyAnimations.wakeUpDuration, () {
       if (mounted) {
-        playSpeakingAnimation();
+        _hasPlayedWakeUp = true;
+        debugPrint('✅ WakeUp animation complete!');
+        widget.onWakeUpComplete?.call();
       }
     });
   }
 
-  /// Public method to trigger the speaking/intro animation
-  /// This can be called from parent widgets when TTS is playing
-  /// [duration] optional custom duration, defaults to widget.speakingDuration
-  void playSpeakingAnimation({Duration? duration}) {
-    if (!mounted) return;
+  /// Start speaking animation with TTS
+  /// Will loop speaking animations until stopSpeaking() is called
+  void playSpeakingAnimation() {
+    if (!mounted || !_isModelLoaded) return;
 
-    setState(() {
-      _currentAnimation = 'SK_HeadChefBot|AS_FP_EC_HeadChefBot_Intro_SK_HeadChefBot';
-      _isInitialized = true;
-    });
+    _animationTimer?.cancel();
+    _isSpeaking = true;
+    _isIdling = false;
 
-    // After speaking duration, transition to idle animation (Animation 2)
-    final animationDuration = duration ?? widget.speakingDuration;
-    Future.delayed(animationDuration, () {
-      if (mounted) {
-        _transitionToIdle();
+    debugPrint('🎙️ Starting speaking animation loop...');
+    _playNextSpeakingAnimation();
+  }
+
+  void _playNextSpeakingAnimation() {
+    if (!mounted || !_isSpeaking) return;
+
+    final animation = DonkeyAnimations.getRandomSpeaking();
+    final duration = DonkeyAnimations.getSpeakingDuration(animation);
+
+    debugPrint('🎙️ Playing speaking animation: $animation (${duration.inMilliseconds}ms)');
+
+    // Play animation once (loopCount: 1)
+    _controller.playAnimation(
+      animationName: animation,
+      loopCount: 1,
+    );
+
+    // Schedule next speaking animation
+    _animationTimer = Timer(duration, () {
+      if (mounted && _isSpeaking) {
+        _playNextSpeakingAnimation();
       }
     });
   }
 
-  /// Transition to idle animation (Animation 2)
-  void _transitionToIdle() {
+  /// Stop speaking and start idle animations
+  void stopSpeaking() {
     if (!mounted) return;
 
-    setState(() {
-      // For now, keeping the same animation
-      // In future versions, this could be a different animation if available
-      _currentAnimation = 'SK_HeadChefBot|AS_FP_EC_HeadChefBot_Intro_SK_HeadChefBot';
+    _animationTimer?.cancel();
+    _isSpeaking = false;
+    _isIdling = true;
+
+    debugPrint('🛑 Stopped speaking, starting idle loop...');
+    _playNextIdleAnimation();
+  }
+
+  void _playNextIdleAnimation() {
+    if (!mounted || !_isIdling) return;
+
+    final animation = DonkeyAnimations.getRandomIdle();
+    final duration = DonkeyAnimations.getIdleDuration(animation);
+
+    debugPrint('😐 Playing idle animation: $animation (${duration.inMilliseconds}ms)');
+
+    // Play animation once (loopCount: 1)
+    _controller.playAnimation(
+      animationName: animation,
+      loopCount: 1,
+    );
+
+    // Schedule next idle animation
+    _animationTimer = Timer(duration, () {
+      if (mounted && _isIdling) {
+        _playNextIdleAnimation();
+      }
     });
   }
 
-  /// Reset to static pose
-  void resetToStatic() {
+  /// Stop idle animations (when user submits answer)
+  void stopIdle() {
     if (!mounted) return;
 
-    setState(() {
-      _currentAnimation = 'Static Pose';
-      _isInitialized = false;
+    _animationTimer?.cancel();
+    _isIdling = false;
+    debugPrint('⏸️ Stopped idle animations');
+  }
+
+  /// Play happy animation (good score)
+  void playHappyAnimation() {
+    if (!mounted || !_isModelLoaded) return;
+
+    _animationTimer?.cancel();
+    _isSpeaking = false;
+    _isIdling = false;
+
+    debugPrint('😄 Playing happy animation!');
+
+    // Play happy animation once
+    _controller.playAnimation(
+      animationName: DonkeyAnimations.happy,
+      loopCount: 1,
+    );
+
+    // Loop happy animation
+    _animationTimer = Timer(DonkeyAnimations.happyDuration, () {
+      if (mounted) {
+        playHappyAnimation(); // Loop
+      }
+    });
+  }
+
+  /// Play sad animation (bad score)
+  void playSadAnimation() {
+    if (!mounted || !_isModelLoaded) return;
+
+    _animationTimer?.cancel();
+    _isSpeaking = false;
+    _isIdling = false;
+
+    debugPrint('😢 Playing sad animation...');
+
+    // Play sad animation once
+    _controller.playAnimation(
+      animationName: DonkeyAnimations.sad,
+      loopCount: 1,
+    );
+
+    // Loop sad animation
+    _animationTimer = Timer(DonkeyAnimations.sadDuration, () {
+      if (mounted) {
+        playSadAnimation(); // Loop
+      }
     });
   }
 
@@ -91,7 +297,6 @@ class InterviewRobotHeadState extends State<InterviewRobotHead> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Use all available space
         final width = constraints.maxWidth;
         final height = constraints.maxHeight;
 
@@ -104,35 +309,36 @@ class InterviewRobotHeadState extends State<InterviewRobotHead> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.blue.shade50.withOpacity(0.2),
-                Colors.purple.shade50.withOpacity(0.2),
+                Colors.blue.shade50.withValues(alpha: 0.2),
+                Colors.purple.shade50.withValues(alpha: 0.2),
               ],
             ),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(24),
-            child: AbsorbPointer(
-              // Block all touch interactions completely
-              absorbing: true,
-              child: ModelViewer(
-                key: ValueKey(_currentAnimation),
-                // src: 'assets/models/head_chef_bot_with_animations.glb',
-                src: 'assets/models/talking_donkey.glb',
-                // alt: 'Interview Robot Head',
-                alt: 'Talking Donkey',
-                ar: false,
-                autoRotate: false,
-                cameraControls: false,
-                disablePan: true,
-                disableTap: true,
-                disableZoom: true,
-                autoPlay: true,
-                animationName: _currentAnimation,
-                orientation: '0deg 0deg 180deg',
-                // Zoom: higher % = smaller model, lower % = bigger model
-                cameraOrbit: 'auto auto 82%',
-                fieldOfView: '35deg', // Moderate field of view
-              ),
+            child: Flutter3DViewer(
+              controller: _controller,
+              src: 'assets/models/talking_donkey.glb',
+
+              // Enable touch so user can rotate model
+              enableTouch: true,
+
+              // Prevent gesture issues
+              activeGestureInterceptor: true,
+
+              // Loading indicator
+              progressBarColor: Colors.blue,
+
+              // Callbacks
+              onProgress: (double progress) {
+                debugPrint('⏳ Model loading: ${(progress * 100).toStringAsFixed(1)}%');
+              },
+              onLoad: (String modelAddress) {
+                debugPrint('✅ Model viewer loaded: $modelAddress');
+              },
+              onError: (String error) {
+                debugPrint('❌ Model viewer error: $error');
+              },
             ),
           ),
         );
@@ -140,3 +346,4 @@ class InterviewRobotHeadState extends State<InterviewRobotHead> {
     );
   }
 }
+

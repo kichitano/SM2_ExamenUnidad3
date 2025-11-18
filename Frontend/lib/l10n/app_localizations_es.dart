@@ -724,6 +724,29 @@ class AppLocalizationsEs extends AppLocalizations {
   String get voiceRecordingComingSoon => 'Grabación de Voz - Próximamente';
 
   @override
+  String get holdToRecord => 'Mantén presionado para grabar';
+
+  @override
+  String get releaseToSend => 'Suelta para enviar';
+
+  @override
+  String get recording => 'Grabando...';
+
+  @override
+  String get getResults => 'Obtener Resultados';
+
+  @override
+  String get sendingAudio => 'Enviando audio...';
+
+  @override
+  String recordedSeconds(int seconds) {
+    return 'Grabado: ${seconds}s';
+  }
+
+  @override
+  String get reRecord => 'Grabar de Nuevo';
+
+  @override
   String get yourAnswer => 'Tu Respuesta';
 
   @override

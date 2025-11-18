@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../models/vocabulary_chapter.dart';
 import '../l10n/app_localizations.dart';
 
@@ -115,7 +115,7 @@ class _VocabularyChapterCardState extends State<VocabularyChapterCard>
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: theme.colorScheme.shadow.withOpacity(0.15),
+                  color: theme.colorScheme.shadow.withValues(alpha: 0.15),
                   blurRadius: 8,
                   offset: const Offset(0, 3),
                 ),
@@ -176,7 +176,7 @@ class _VocabularyChapterCardState extends State<VocabularyChapterCard>
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: _getStatusColor(theme).withOpacity(0.2),
+            color: _getStatusColor(theme).withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Center(
@@ -197,10 +197,10 @@ class _VocabularyChapterCardState extends State<VocabularyChapterCard>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: _getLevelColor(theme).withOpacity(0.1),
+                color: _getLevelColor(theme).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: _getLevelColor(theme).withOpacity(0.3),
+                  color: _getLevelColor(theme).withValues(alpha: 0.3),
                 ),
               ),
               child: Text(
@@ -230,7 +230,7 @@ class _VocabularyChapterCardState extends State<VocabularyChapterCard>
         fontWeight: FontWeight.bold,
         color: widget.chapter.isUnlocked 
           ? theme.colorScheme.onSurface 
-          : theme.colorScheme.onSurface.withOpacity(0.6),
+          : theme.colorScheme.onSurface.withValues(alpha: 0.6),
       ),
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
@@ -242,8 +242,8 @@ class _VocabularyChapterCardState extends State<VocabularyChapterCard>
       widget.chapter.description!,
       style: theme.textTheme.bodySmall?.copyWith(
         color: widget.chapter.isUnlocked 
-          ? theme.colorScheme.onSurface.withOpacity(0.7)
-          : theme.colorScheme.onSurface.withOpacity(0.4),
+          ? theme.colorScheme.onSurface.withValues(alpha: 0.7)
+          : theme.colorScheme.onSurface.withValues(alpha: 0.4),
       ),
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
@@ -264,7 +264,7 @@ class _VocabularyChapterCardState extends State<VocabularyChapterCard>
             Text(
               l10n.progress,
               style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.6),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
               ),
             ),
             Text(
@@ -286,7 +286,7 @@ class _VocabularyChapterCardState extends State<VocabularyChapterCard>
               borderRadius: BorderRadius.circular(2),
               child: LinearProgressIndicator(
                 value: _progressAnimation.value,
-                backgroundColor: theme.colorScheme.outline.withOpacity(0.2),
+                backgroundColor: theme.colorScheme.outline.withValues(alpha: 0.2),
                 valueColor: AlwaysStoppedAnimation<Color>(_getStatusColor(theme)),
                 minHeight: 4,
               ),
@@ -300,7 +300,7 @@ class _VocabularyChapterCardState extends State<VocabularyChapterCard>
         Text(
           widget.chapter.progressText,
           style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurface.withOpacity(0.5),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
           ),
         ),
       ],
@@ -314,10 +314,10 @@ class _VocabularyChapterCardState extends State<VocabularyChapterCard>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: statusColor.withOpacity(0.1),
+        color: statusColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: statusColor.withOpacity(0.3),
+          color: statusColor.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -347,7 +347,7 @@ class _VocabularyChapterCardState extends State<VocabularyChapterCard>
       width: 24,
       height: 24,
       decoration: BoxDecoration(
-        color: _getStatusColor(theme).withOpacity(0.1),
+        color: _getStatusColor(theme).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Icon(
@@ -360,9 +360,9 @@ class _VocabularyChapterCardState extends State<VocabularyChapterCard>
 
   Color _getCardBackgroundColor(ThemeData theme) {
     if (!widget.chapter.isUnlocked) {
-      return theme.colorScheme.surfaceContainerHighest.withOpacity(0.5);
+      return theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5);
     } else if (widget.chapter.isCompleted) {
-      return theme.colorScheme.primaryContainer.withOpacity(0.3);
+      return theme.colorScheme.primaryContainer.withValues(alpha: 0.3);
     } else {
       return theme.colorScheme.surface;
     }

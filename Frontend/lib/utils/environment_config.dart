@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class EnvironmentConfig {
   // =========================
   // Flags de compilación
@@ -12,7 +14,7 @@ class EnvironmentConfig {
   // =========================
   // URLs base por defecto (ambas ramas)
   // =========================
-  static const String _tunnelApiUrl   = 'https://d1151c2af665.ngrok-free.app'; // <<<< ACTUALIZAR CON TU URL DE NGROK
+  static const String _tunnelApiUrl   = 'https://a444c934ecd0.ngrok-free.app'; // <<<< ACTUALIZAR CON TU URL DE NGROK
   static const String _localApiUrl    = 'http://10.0.2.2:3000';               // <<<< Para emulador Android
 
   // Elige por defecto según el flag _useTunnel (se puede sobreescribir con API_BASE_URL)
@@ -89,23 +91,23 @@ class EnvironmentConfig {
   static void logConfiguration() {
     if (isDevelopment) {
       // ignore: avoid_print
-      print('=== Environment Configuration ===');
+      debugPrint('=== Environment Configuration ===');
       // ignore: avoid_print
-      print('USE_TUNNEL: $_useTunnel');
+      debugPrint('USE_TUNNEL: $_useTunnel');
       // ignore: avoid_print
-      print('API Base URL: $apiBaseUrl');
+      debugPrint('API Base URL: $apiBaseUrl');
       // ignore: avoid_print
-      print('API Version: $apiVersion');
+      debugPrint('API Version: $apiVersion');
       // ignore: avoid_print
-      print('Full API URL: $fullApiUrl');
+      debugPrint('Full API URL: $fullApiUrl');
       // ignore: avoid_print
-      print('Development Mode: $isDevelopment');
+      debugPrint('Development Mode: $isDevelopment');
       // ignore: avoid_print
-      print('Enable Logging: $enableLogging');
+      debugPrint('Enable Logging: $enableLogging');
       // ignore: avoid_print
-      print('API Timeout: ${apiTimeout.inSeconds}s');
+      debugPrint('API Timeout: ${apiTimeout.inSeconds}s');
       // ignore: avoid_print
-      print('================================');
+      debugPrint('================================');
     }
   }
 }

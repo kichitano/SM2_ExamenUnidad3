@@ -113,6 +113,63 @@ class InterviewService {
     }
   }
 
+  /// Submit an answer with audio for evaluation
+  Future<SubmitAnswerResponse> submitAnswerWithAudio({
+    required String sessionId,
+    required String questionId,
+    required List<int> audioBytes,
+    required String mimeType,
+    int? timeSpentSeconds,
+  }) async {
+    try {
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$baseUrl/interview/sessions/submit-answer-audio'),
+      );
+
+      // Add headers
+      request.headers.addAll(_getHeaders());
+
+      // Add form fields
+      request.fields['sessionId'] = sessionId;
+      request.fields['questionId'] = questionId;
+      if (timeSpentSeconds != null) {
+        request.fields['timeSpentSeconds'] = timeSpentSeconds.toString();
+      }
+
+      // Add audio file
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'audio',
+          audioBytes,
+          filename: 'answer_${DateTime.now().millisecondsSinceEpoch}.m4a',
+        ),
+      );
+
+      // Send request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        return SubmitAnswerResponse.fromJson(data);
+      } else if (response.statusCode == 400) {
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        throw Exception(data['message'] ?? 'Invalid session or audio format');
+      } else if (response.statusCode == 404) {
+        throw Exception('Session or question not found');
+      } else if (response.statusCode == 401) {
+        throw Exception('Unauthorized - Please login again');
+      } else if (response.statusCode == 413) {
+        throw Exception('Audio file too large');
+      } else {
+        throw Exception('Failed to submit audio: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error submitting audio answer: $e');
+    }
+  }
+
   /// Get final session score and feedback
   Future<SessionScore> getSessionScore(String sessionId) async {
     try {

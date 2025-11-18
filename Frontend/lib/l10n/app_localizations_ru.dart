@@ -715,6 +715,29 @@ class AppLocalizationsRu extends AppLocalizations {
   String get voiceRecordingComingSoon => 'Voice Recording - Coming Soon';
 
   @override
+  String get holdToRecord => 'Hold to record';
+
+  @override
+  String get releaseToSend => 'Release to send';
+
+  @override
+  String get recording => 'Recording...';
+
+  @override
+  String get getResults => 'Get Results';
+
+  @override
+  String get sendingAudio => 'Sending audio...';
+
+  @override
+  String recordedSeconds(int seconds) {
+    return 'Recorded: ${seconds}s';
+  }
+
+  @override
+  String get reRecord => 'Record Again';
+
+  @override
   String get yourAnswer => 'Your Answer';
 
   @override
